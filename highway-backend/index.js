@@ -1,23 +1,20 @@
-require("express-async-errors")
-const express = require("express")
-const errorHandler = require("./middleware/errorHandler");
+require("express-async-errors");
+const express = require("express");
+const expressWs = require("express-ws");
+const bodyParser = require("body-parser");
 const logger = require("./logging/logger");
-const morgan = require('morgan');
-const helmet = require('helmet');
-const compression = require('compression');
-const dotenv = require('dotenv');
+const routes = require("./routes");
+const { setupWebSocket } = require("./websocket");
+const { PORT } = require("./config");
 
 const app = express();
+expressWs(app);
 
 app.use(express.json());
-app.use(errorHandler);
-app.use(helmet());
-app.use(compression());
-app.use(morgan('tiny'));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-const PORT = process.env.PORT | 3001;
-app.listen(PORT, () => logger.info("Listening " + PORT));
+app.use("/", routes);
+setupWebSocket(app);
 
-app.get("/", (req, res) => {
-  res.send("Hello world");
-});
+app.listen(PORT, () => logger.info("Listening on port " + PORT));
