@@ -22,20 +22,6 @@ router.get("/", (req, res) => {
   res.send("Running");
 });
 
-router.all("/handle-call", (req, res) => {
-  const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
-                          <Response>
-                              <Say>Hey! I'm a virtual assistant on behalf of Olive Financial. Is this a good time to talk?</Say>
-                              <Pause length="1"/>
-                              <Connect>
-                                  <Stream url="wss://${req.headers.host}/media-stream" />
-                              </Connect>
-                              <Hangup/>
-                          </Response>`;
-  res.type("text/xml");
-  res.send(twimlResponse);
-});
-
 router.post("/call-customer", async (req, res) => {
   const { error } = validatePhoneNumber(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -44,9 +30,16 @@ router.post("/call-customer", async (req, res) => {
 
   try {
     const call = await client.calls.create({
-      url: `http://${req.headers.host}/handle-call`, // URL to handle the call
+      // url: `http://${req.headers.host}/handle-call`, // URL to handle the call
       to: to,
       from: TWILIO_PHONE_NUMBER,
+      twiml: `<?xml version="1.0" encoding="UTF-8"?>
+              <Response>
+                  <Connect>
+                      <Stream url="wss://${req.headers.host}/media-stream" />
+                  </Connect>
+                  <Hangup/>
+              </Response>`,
     });
 
     res.send(`Call initiated with SID: ${call.sid}`);
