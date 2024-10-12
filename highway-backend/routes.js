@@ -19,7 +19,9 @@ function validatePhoneNumber(phoneNumber) {
 }
 
 router.get("/", (req, res) => {
-  res.send("Running");
+  res.send({
+    message: "Running",
+  });
 });
 
 router.all("/handle-call", (req, res) => {

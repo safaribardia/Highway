@@ -18,7 +18,7 @@ import {
   JsonInput,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import styles from "./CustomTable.module.css";
+import styles from "../CustomTable.module.css";
 import { useForm } from "@mantine/form";
 
 const theme = createTheme({
@@ -151,7 +151,7 @@ export default function Page() {
         opened={addUserModalOpened}
         onClose={closeAddUserModal}
         withCloseButton={false}
-        title="Add Verification"
+        title="Add User"
         centered
         size="md"
         styles={modalStyles}
@@ -253,21 +253,14 @@ export default function Page() {
             marginBottom: "20px",
           }}
         >
-          <div className={styles.heading}>Pending Verifications</div>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <Button variant="outline" color="white">
-              Actions
-            </Button>
-            <Button variant="white" onClick={openAddUserModal}>
-              Add verification
-            </Button>
-          </div>
+          <div className={styles.heading}>Verification Call Logs</div>
         </div>
         <table className={styles.customTable}>
           <thead>
             <tr>
               <th>Name</th>
               <th>Phone</th>
+              <th>Type</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -276,21 +269,27 @@ export default function Page() {
               <tr key={customer.id}>
                 <td>{customer.name}</td>
                 <td>{customer.phone}</td>
+                <td>{customer.type}</td>
                 <td>
-                  <div style={{ display: "flex", gap: 10 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                    }}
+                  >
                     <Button
                       variant="outline"
                       color="white"
                       onClick={() => handleViewData(customer.data)}
                     >
-                      View required data
+                      View data
                     </Button>
                     <Button
                       variant="white"
                       loading={callInProgress[customer.id] || false}
                       onClick={() => handleCall(customer.id, customer.phone)}
                     >
-                      Initiate call
+                      Verify via call
                     </Button>
                   </div>
                 </td>
