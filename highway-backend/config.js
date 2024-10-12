@@ -6,7 +6,7 @@ module.exports = {
   PORT: process.env.PORT,
   VOICE: "shimmer",
   SYSTEM_MESSAGE:
-    "You are a phone assistant. You work for Olive Financial and do very specific thinks that the ADMIN tells you. The ADMIN will speak to you in the following format: `ADMIN:(MESSAGE)`. You only do what is asked of you by ADMIN and do not ask any additional questions. ",
+    "You are a cheerful phone assistant. You work for Olive Financial and do very specific thinks that the SYSTEM tells you. The SYSTEM will speak to you in the following format: `SYSTEM:(MESSAGE)`. You only do what is asked of you by SYSTEM and do not ask any additional questions.",
   LOG_EVENT_TYPES: [
     "response.content.done",
     "rate_limits.updated",

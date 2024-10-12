@@ -1,14 +1,17 @@
 const WebSocket = require("ws");
 const logger = require("./logging/logger");
+const { OPENAI_API_KEY } = require("./config");
 const {
-  OPENAI_API_KEY,
-  VOICE,
-  SYSTEM_MESSAGE,
-  LOG_EVENT_TYPES,
-} = require("./config");
+  sessionConfig,
+  initialPrompt,
+  followUpPrompt,
+} = require("./conversationConfig");
 
 function setupWebSocket(app) {
-  app.ws("/media-stream", (ws, req) => {
+  let birthday = {};
+
+  app.ws("/media-stream/:id", (ws, req) => {
+    const streamId = req.params.id;
     logger.info("Client connected");
 
     const openAiWs = new WebSocket(
@@ -21,24 +24,36 @@ function setupWebSocket(app) {
       }
     );
 
+    const sendConversationItem = (text, role = "user") => {
+      const event = {
+        type: "conversation.item.create",
+        item: {
+          type: "message",
+          role: role,
+          content: [
+            {
+              type: "input_text",
+              text: text,
+            },
+          ],
+        },
+      };
+      openAiWs.send(JSON.stringify(event));
+      openAiWs.send(JSON.stringify({ type: "response.create" }));
+    };
+
     let streamSid = null;
 
     const sendSessionUpdate = () => {
       const sessionUpdate = {
         type: "session.update",
-        session: {
-          turn_detection: { type: "server_vad" },
-          input_audio_format: "g711_ulaw",
-          output_audio_format: "g711_ulaw",
-          voice: VOICE,
-          instructions: SYSTEM_MESSAGE,
-          modalities: ["text", "audio"],
-          temperature: 0.8,
-        },
+        session: sessionConfig,
       };
 
       logger.info("Sending session update:", JSON.stringify(sessionUpdate));
       openAiWs.send(JSON.stringify(sessionUpdate));
+
+      sendConversationItem(initialPrompt);
     };
 
     openAiWs.on("open", () => {
@@ -49,9 +64,39 @@ function setupWebSocket(app) {
     openAiWs.on("message", (data) => {
       try {
         const response = JSON.parse(data);
+        console.log(
+          `Received event: ${response.type}`,
+          JSON.stringify(response)
+        );
 
-        if (LOG_EVENT_TYPES.includes(response.type)) {
-          logger.info(`Received event: ${response.type}`, response);
+        if (
+          response.type === "response.function_call_arguments.done" &&
+          response.name === "set_birthday"
+        ) {
+          birthday = JSON.parse(response.arguments);
+
+          const event = {
+            type: "conversation.item.create",
+            item: {
+              type: "function_call_output",
+              status: "completed",
+              role: "system",
+              call_id: response.call_id,
+              output: `{'accepted': true}`,
+            },
+          };
+
+          openAiWs.send(JSON.stringify(event));
+          sendConversationItem(followUpPrompt);
+          sendResponseCreate();
+        }
+
+        if (
+          response.type === "response.function_call_arguments.done" &&
+          response.name === "hang_up_call"
+        ) {
+          openAiWs.close();
+          ws.close();
         }
 
         if (response.type === "session.updated") {
@@ -69,6 +114,7 @@ function setupWebSocket(app) {
           ws.send(JSON.stringify(audioDelta));
         }
       } catch (error) {
+        console.log(JSON.stringify(error), JSON.stringify(data));
         logger.error(
           "Error processing OpenAI message:",
           error,
@@ -89,7 +135,6 @@ function setupWebSocket(app) {
                 type: "input_audio_buffer.append",
                 audio: data.media.payload,
               };
-
               openAiWs.send(JSON.stringify(audioAppend));
             }
             break;
@@ -109,6 +154,7 @@ function setupWebSocket(app) {
     ws.on("close", () => {
       if (openAiWs.readyState === WebSocket.OPEN) openAiWs.close();
       logger.info("Client disconnected.");
+      console.log("We found the customer's birthday. It's: ", birthday);
     });
 
     openAiWs.on("close", () => {
