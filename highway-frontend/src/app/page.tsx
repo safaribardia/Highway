@@ -1,12 +1,14 @@
 'use client'
 import CallButton from "@/components/CallButton"
 import PhoneInput from "@/components/PhoneInput"
+import { callCustomer } from "@/utils/api"
 import { createClient } from "@/utils/supabase/client"
 import { useEffect, useState } from "react"
 
 export default function Page() {
   const [todos, setTodos] = useState<any[]>([])
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [isCallInProgress, setIsCallInProgress] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -17,6 +19,7 @@ export default function Page() {
 
   const handleCall = () => {
     // Here you would implement the actual call functionality
+    callCustomer(`+1${phoneNumber.replace(/[^\d]/g, '')}`)
     console.log(`Calling ${phoneNumber}`)
   }
 
