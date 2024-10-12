@@ -5,6 +5,8 @@ import { callCustomer } from "@/utils/api";
 import { createClient } from "@/utils/supabase/client";
 import { useState, useEffect } from "react";
 import "@mantine/core/styles.css";
+import { Badge } from "@mantine/core";
+
 import {
   createTheme,
   MantineProvider,
@@ -20,6 +22,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import styles from "../CustomTable.module.css";
 import { useForm } from "@mantine/form";
+import Collapsible from "react-collapsible";
 
 const theme = createTheme({
   black: "#0c0d21",
@@ -147,103 +150,6 @@ export default function Page() {
 
   return (
     <>
-      <Modal
-        opened={addUserModalOpened}
-        onClose={closeAddUserModal}
-        withCloseButton={false}
-        title="Add User"
-        centered
-        size="md"
-        styles={modalStyles}
-      >
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <TextInput
-            label="Name"
-            placeholder="Enter name"
-            {...form.getInputProps("name")}
-            required
-            mb="md"
-            styles={(theme) => ({
-              input: {
-                backgroundColor: theme.colors.dark[6],
-                color: theme.white,
-                border: `1px solid ${theme.colors.dark[4]}`,
-                "&:focus": {
-                  borderColor: theme.colors.blue[7],
-                },
-              },
-              label: {
-                color: theme.white,
-                marginBottom: "5px",
-              },
-            })}
-          />
-          <TextInput
-            label="Phone Number"
-            placeholder="Enter 10-digit phone number"
-            {...form.getInputProps("phoneNumber")}
-            style={{ marginBottom: "10px" }}
-            required
-            styles={(theme) => ({
-              input: {
-                backgroundColor: theme.colors.dark[6],
-                color: theme.colors.dark[0],
-                border: 0,
-              },
-              label: {
-                color: theme.colors.dark[0],
-              },
-            })}
-          />
-          <JsonInput
-            label="Verification data (JSON)"
-            placeholder="Enter verification data in JSON format"
-            {...form.getInputProps("userData")}
-            style={{ marginBottom: "10px" }}
-            required
-            validationError="Invalid JSON"
-            formatOnBlur
-            autosize
-            minRows={4}
-            styles={(theme) => ({
-              input: {
-                backgroundColor: theme.colors.dark[6],
-                color: theme.colors.dark[0],
-                border: 0,
-              },
-              label: {
-                color: theme.colors.dark[0],
-              },
-            })}
-          />
-          <Button type="submit" fullWidth mt="xl" color="blue">
-            Add verification
-          </Button>
-        </form>
-      </Modal>
-
-      <Modal
-        opened={dataModalOpened}
-        onClose={closeDataModal}
-        title="Verification Data"
-        centered
-        size="lg"
-        styles={modalStyles}
-      >
-        <pre
-          style={{
-            whiteSpace: "pre-wrap",
-            wordWrap: "break-word",
-            backgroundColor: theme.colors?.dark?.[7],
-            padding: "15px",
-            borderRadius: "5px",
-            border: `1px solid ${theme.colors?.dark?.[5]}`,
-          }}
-        >
-          {selectedUserData}
-        </pre>
-      </Modal>
-
       <div style={{ padding: "10px" }}>
         <div
           style={{
@@ -255,48 +161,50 @@ export default function Page() {
         >
           <div className={styles.heading}>Verification Call Logs</div>
         </div>
-        <table className={styles.customTable}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Type</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map((customer) => (
-              <tr key={customer.id}>
-                <td>{customer.name}</td>
-                <td>{customer.phone}</td>
-                <td>{customer.type}</td>
-                <td>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 10,
-                    }}
-                  >
-                    <Button
-                      variant="outline"
-                      color="white"
-                      onClick={() => handleViewData(customer.data)}
-                    >
-                      View data
-                    </Button>
-                    <Button
-                      variant="white"
-                      loading={callInProgress[customer.id] || false}
-                      onClick={() => handleCall(customer.id, customer.phone)}
-                    >
-                      Verify via call
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Collapsible
+          trigger={
+            <>
+              <div
+                style={{
+                  color: "white",
+                  fontWeight: 800,
+                  width: "80%",
+                  backgroundColor: theme.colors?.dark?.[6],
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  borderBottomRightRadius: 0,
+                  borderBottomLeftRadius: 0,
+                  minHeight: "70px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 20px",
+                }}
+              >
+                <div>Bardia Safari (ID: 123456)</div>
+                <Badge color="teal" size="md">
+                  Identity Verified
+                </Badge>
+              </div>
+            </>
+          }
+          transitionTime={100}
+        >
+          <div
+            style={{
+              color: "white",
+              fontWeight: 500,
+              padding: "20px 20px",
+              backgroundColor: theme.colors?.dark?.[4],
+              borderRadius: "5px",
+              borderTopRightRadius: 0,
+              borderTopLeftRadius: 0,
+              width: "80%",
+            }}
+          >
+            <div style={{ fontWeight: 800 }}>Call Summary</div>
+          </div>
+        </Collapsible>
       </div>
     </>
   );

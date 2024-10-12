@@ -16,6 +16,7 @@ import {
   TextInput,
   Textarea,
   JsonInput,
+  Badge,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import styles from "./CustomTable.module.css";
@@ -124,6 +125,11 @@ export default function Page() {
   const handleViewData = (userData: any) => {
     setSelectedUserData(JSON.stringify(userData, null, 2));
     openDataModal();
+  };
+
+  const statusTypes = {
+    CALL_IN_PROGRESS: { color: "yellow", label: "CALL IN PROGRESS" },
+    CALLED: { color: "teal", label: "CALLED" },
   };
 
   const modalStyles = {
@@ -274,7 +280,19 @@ export default function Page() {
           <tbody>
             {customers.map((customer) => (
               <tr key={customer.id}>
-                <td>{customer.name}</td>
+                <td>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <Badge
+                      color={statusTypes["CALL_IN_PROGRESS"].color}
+                      size="md"
+                    >
+                      {statusTypes["CALL_IN_PROGRESS"].label}
+                    </Badge>
+                    {customer.name}
+                  </div>
+                </td>
                 <td>{customer.phone}</td>
                 <td>
                   <div style={{ display: "flex", gap: 10 }}>
