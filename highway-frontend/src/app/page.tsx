@@ -236,6 +236,10 @@ export default function Page() {
         size="lg"
         styles={modalStyles}
       >
+        <div style={{ marginBottom: "10px" }}>
+          The automated agent will inquire about the following data to verify
+          the identity of the customer.
+        </div>
         <pre
           style={{
             whiteSpace: "pre-wrap",
@@ -274,6 +278,7 @@ export default function Page() {
             <tr>
               <th>Name</th>
               <th>Phone</th>
+              <th>Background</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -294,6 +299,7 @@ export default function Page() {
                   </div>
                 </td>
                 <td>{customer.phone}</td>
+                <td>{customer.type}</td>
                 <td>
                   <div style={{ display: "flex", gap: 10 }}>
                     <Button
@@ -301,7 +307,7 @@ export default function Page() {
                       color="white"
                       onClick={() => handleViewData(customer.data)}
                     >
-                      View required data
+                      Data
                     </Button>
                     <Button
                       variant="white"
