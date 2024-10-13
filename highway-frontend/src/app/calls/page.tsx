@@ -78,16 +78,11 @@ export default function Page() {
   return (
     <>
       <div style={{ padding: "10px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "20px",
-          }}
-        >
-          <div className={styles.heading}>Verification Call Logs</div>
+        <div style={{ marginBottom: "20px" }}>
+          <div className={styles.heading}>Verifications Call Logs</div>
+          <div>View the status of calls made by your automated agent.</div>
         </div>
+
         <Collapsible
           trigger={
             <>

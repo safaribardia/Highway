@@ -179,7 +179,7 @@ export default function Page() {
               input: {
                 backgroundColor: theme.colors.dark[6],
                 color: theme.white,
-                border: `1px solid ${theme.colors.dark[4]}`,
+                border: 0,
                 "&:focus": {
                   borderColor: theme.colors.blue[7],
                 },
@@ -228,7 +228,11 @@ export default function Page() {
 
           <JsonInput
             label="Verification data (JSON)"
-            placeholder="Enter verification data in JSON format"
+            placeholder={`{
+  "date of birth": "1990-01-01",
+  "address": "123 Main St, Anytown, USA"
+}
+            `}
             {...form.getInputProps("userData")}
             style={{ marginBottom: "10px" }}
             required
@@ -288,7 +292,13 @@ export default function Page() {
             marginBottom: "20px",
           }}
         >
-          <div className={styles.heading}>Pending Verifications</div>
+          <div>
+            <div className={styles.heading}>Pending Verifications</div>
+            <div>
+              Your automated agent can call the customer and ask them to verify
+              this information.
+            </div>
+          </div>
           <div style={{ display: "flex", gap: "10px" }}>
             {/* <Button variant="outline" color="white">
               Actions
@@ -314,12 +324,12 @@ export default function Page() {
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
-                    <Badge
+                    {/* <Badge
                       color={statusTypes["CALL_IN_PROGRESS"].color}
                       size="md"
                     >
                       {statusTypes["CALL_IN_PROGRESS"].label}
-                    </Badge>
+                    </Badge> */}
                     {customer.name}
                   </div>
                 </td>
