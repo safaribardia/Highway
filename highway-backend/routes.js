@@ -21,7 +21,9 @@ function validatePhoneNumber(phoneNumber) {
 }
 
 router.get("/", (req, res) => {
-  res.send("Running");
+  res.send({
+    message: "Running",
+  });
 });
 
 // Create a single supabase client for interacting with your database
