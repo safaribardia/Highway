@@ -43,7 +43,6 @@ const theme = createTheme({
 
 export default function Page() {
   const [customers, setCustomers] = useState<any[]>([]);
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [
     addUserModalOpened,
     { open: openAddUserModal, close: closeAddUserModal },
@@ -77,7 +76,10 @@ export default function Page() {
 
   const handleCall = (customerId: number, phoneNumber: string) => {
     setCallInProgress((prev) => ({ ...prev, [customerId]: true }));
-    callCustomer(`+1${phoneNumber.replace(/[^\d]/g, "")}`).finally(() => {
+    callCustomer(
+      `+1${phoneNumber.replace(/[^\d]/g, "")}`,
+      customerId.toString()
+    ).finally(() => {
       setCallInProgress((prev) => ({ ...prev, [customerId]: false }));
     });
   };
@@ -86,6 +88,7 @@ export default function Page() {
     initialValues: {
       name: "",
       phoneNumber: "",
+      type: "",
       userData: "",
     },
     validate: {
@@ -100,6 +103,8 @@ export default function Page() {
           return "Invalid JSON";
         }
       },
+      type: (value) =>
+        value.trim().length > 0 ? null : "Background is required",
     },
   });
 
@@ -109,6 +114,7 @@ export default function Page() {
       name: values.name,
       phone: values.phoneNumber,
       data: JSON.parse(values.userData),
+      type: values.type,
     });
 
     if (error) {
@@ -201,6 +207,25 @@ export default function Page() {
               },
             })}
           />
+
+          <TextInput
+            label="Background"
+            placeholder="E.g. customer signed up for a loan"
+            {...form.getInputProps("type")}
+            style={{ marginBottom: "10px" }}
+            required
+            styles={(theme) => ({
+              input: {
+                backgroundColor: theme.colors.dark[6],
+                color: theme.colors.dark[0],
+                border: 0,
+              },
+              label: {
+                color: theme.colors.dark[0],
+              },
+            })}
+          />
+
           <JsonInput
             label="Verification data (JSON)"
             placeholder="Enter verification data in JSON format"
@@ -265,9 +290,9 @@ export default function Page() {
         >
           <div className={styles.heading}>Pending Verifications</div>
           <div style={{ display: "flex", gap: "10px" }}>
-            <Button variant="outline" color="white">
+            {/* <Button variant="outline" color="white">
               Actions
-            </Button>
+            </Button> */}
             <Button variant="white" onClick={openAddUserModal}>
               Add verification
             </Button>
@@ -277,7 +302,7 @@ export default function Page() {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Phone</th>
+              <th>Phone Number</th>
               <th>Background</th>
               <th>Action</th>
             </tr>

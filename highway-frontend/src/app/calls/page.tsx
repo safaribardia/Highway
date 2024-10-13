@@ -7,19 +7,7 @@ import { useState, useEffect } from "react";
 import "@mantine/core/styles.css";
 import { Badge } from "@mantine/core";
 
-import {
-  createTheme,
-  MantineProvider,
-  AppShell,
-  Burger,
-  Button,
-  Modal,
-  Table,
-  TextInput,
-  Textarea,
-  JsonInput,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { createTheme } from "@mantine/core";
 import styles from "../CustomTable.module.css";
 import { useForm } from "@mantine/form";
 import Collapsible from "react-collapsible";
@@ -45,17 +33,6 @@ const theme = createTheme({
 
 export default function Page() {
   const [customers, setCustomers] = useState<any[]>([]);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [
-    addUserModalOpened,
-    { open: openAddUserModal, close: closeAddUserModal },
-  ] = useDisclosure(false);
-  const [callInProgress, setCallInProgress] = useState<{
-    [key: number]: boolean;
-  }>({});
-  const [selectedUserData, setSelectedUserData] = useState<string | null>(null);
-  const [dataModalOpened, { open: openDataModal, close: closeDataModal }] =
-    useDisclosure(false);
 
   const fetchCustomers = async () => {
     const supabase = createClient();
@@ -77,13 +54,6 @@ export default function Page() {
 
   console.log(customers);
 
-  const handleCall = (customerId: number, phoneNumber: string) => {
-    setCallInProgress((prev) => ({ ...prev, [customerId]: true }));
-    callCustomer(`+1${phoneNumber.replace(/[^\d]/g, "")}`).finally(() => {
-      setCallInProgress((prev) => ({ ...prev, [customerId]: false }));
-    });
-  };
-
   const form = useForm({
     initialValues: {
       name: "",
@@ -104,49 +74,6 @@ export default function Page() {
       },
     },
   });
-
-  const handleSubmit = async (values: typeof form.values) => {
-    const supabase = createClient();
-    const { data, error } = await supabase.from("verifications").insert({
-      name: values.name,
-      phone: values.phoneNumber,
-      data: JSON.parse(values.userData),
-    });
-
-    if (error) {
-      console.error("Error adding verification:", error);
-      // You might want to show an error message to the user here
-    } else {
-      console.log("Verification added successfully:", data);
-      fetchCustomers(); // Refresh the customer list
-      closeAddUserModal();
-      form.reset(); // Reset the form
-    }
-  };
-
-  const handleViewData = (userData: any) => {
-    setSelectedUserData(JSON.stringify(userData, null, 2));
-    openDataModal();
-  };
-
-  const modalStyles = {
-    header: {
-      backgroundColor: theme.colors?.dark?.[6],
-      color: "white",
-      padding: "20px",
-    },
-    body: {
-      backgroundColor: theme.colors?.dark?.[5],
-      color: "white",
-      padding: "20px",
-    },
-    close: {
-      color: theme.white,
-      "&:hover": {
-        backgroundColor: theme.colors?.dark?.[6],
-      },
-    },
-  };
 
   return (
     <>
