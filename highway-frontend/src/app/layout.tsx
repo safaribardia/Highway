@@ -125,7 +125,13 @@ export default function RootLayout({
               </div>
 
               <div style={{ marginTop: "auto" }}>
-                <Button variant="white">Support</Button>
+                <Button
+                  component="a"
+                  href="mailto:bardias@stanford.edu"
+                  variant="white"
+                >
+                  Support
+                </Button>
               </div>
             </AppShell.Navbar>
 
