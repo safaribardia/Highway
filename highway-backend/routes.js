@@ -51,7 +51,7 @@ router.post("/call-customer", async (req, res) => {
       twiml: `<?xml version="1.0" encoding="UTF-8"?>
               <Response>
                   <Connect>
-                      <Stream url="wss://${req.headers.host}/media-stream/${verification}" />
+                      <Stream url="wss://${req.headers.host}/media-stream/${verification}/${data[0].id}" />
                       <Record transcribe="true" transcribeCallback="https://webhook.site/4a1616da-9d4f-4b3b-af92-cf790be95930"/>
                   </Connect>
                   <Hangup/>

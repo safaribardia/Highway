@@ -1,17 +1,18 @@
 const WebSocket = require("ws");
 const logger = require("./logging/logger");
 const { OPENAI_API_KEY } = require("./config");
-const {
-  sessionConfig,
-  initialPrompt,
-  followUpPrompt,
-} = require("./conversationConfig");
-
+const { sessionConfig, followUpPrompt } = require("./conversationConfig");
+const { createClient } = require("@supabase/supabase-js");
+const supabase = createClient(
+  "https://umbkzjfffeoykaxsghly.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtYmt6amZmZmVveWtheHNnaGx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg3NTgzMjEsImV4cCI6MjA0NDMzNDMyMX0.6PVD6OD6dSt4yGjAMpsxE73sxz9NpgMhHW4JfP0IE5I"
+);
 function setupWebSocket(app) {
-  let birthday = {};
-
-  app.ws("/media-stream/:id", (ws, req) => {
+  app.ws("/media-stream/:id/:numid", async (ws, req) => {
     const streamId = req.params.id;
+    const callId = req.params.numid;
+
+    let bigdata = "";
     logger.info("Client connected");
 
     const openAiWs = new WebSocket(
@@ -52,50 +53,48 @@ function setupWebSocket(app) {
 
       logger.info("Sending session update:", JSON.stringify(sessionUpdate));
       openAiWs.send(JSON.stringify(sessionUpdate));
-
-      sendConversationItem(initialPrompt);
+      const sending_data = `SYSTEM:(Explain to the customer that you are an agent with Olive Financial. Read the background from the identity provider and verify the infomration provided BUT do not confirm any information, just ask 2 questions one at a time based on the following data: ${JSON.stringify(
+        bigdata
+      )})`;
+      console.log("sending_data", sending_data);
+      sendConversationItem(sending_data);
     };
 
-    openAiWs.on("open", () => {
-      logger.info("Connected to the OpenAI Realtime API");
-      setTimeout(sendSessionUpdate, 250);
+    openAiWs.on("open", async () => {
+      const { data, error } = await supabase
+        .from("verifications")
+        .select("*")
+        .eq("id", streamId);
+      console.log("supadata", data, error, streamId);
+
+      if (data) {
+        bigdata = JSON.stringify(data[0]);
+        sendSessionUpdate();
+
+        logger.info("Connected to the OpenAI Realtime API");
+      }
     });
 
     openAiWs.on("message", (data) => {
       try {
         const response = JSON.parse(data);
-        console.log(
-          `Received event: ${response.type}`,
-          JSON.stringify(response)
-        );
+        // console.log(
+        //   `Received event: ${response.type}`,
+        //   JSON.stringify(response)
+        // );
 
-        if (
-          response.type === "response.function_call_arguments.done" &&
-          response.name === "set_birthday"
-        ) {
-          birthday = JSON.parse(response.arguments);
-
-          const event = {
-            type: "conversation.item.create",
-            item: {
-              type: "function_call_output",
-              status: "completed",
-              role: "system",
-              call_id: response.call_id,
-              output: `{'accepted': true}`,
-            },
-          };
-
-          openAiWs.send(JSON.stringify(event));
-          sendConversationItem(followUpPrompt);
-          sendResponseCreate();
+        if (response.type === "response.function_call_arguments.done") {
+          console.log("arguments", response.arguments);
+          supabase
+            .from("calls")
+            .update({ status: response.arguments.status })
+            .eq("id", callId);
         }
 
         if (
           response.type === "response.function_call_arguments.done" &&
           response.name === "hang_up_call"
         ) {
-          openAiWs.close();
           ws.close();
         }
 
@@ -152,9 +151,20 @@ function setupWebSocket(app) {
     });
 
     ws.on("close", () => {
-      if (openAiWs.readyState === WebSocket.OPEN) openAiWs.close();
+      openAiWs.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            modalities: ["text"],
+            tool_choice: {
+              type: "function",
+              name: "call_reflection_data",
+            },
+          },
+        })
+      );
+
       logger.info("Client disconnected.");
-      console.log("We found the customer's birthday. It's: ", birthday);
     });
 
     openAiWs.on("close", () => {
